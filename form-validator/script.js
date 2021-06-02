@@ -24,20 +24,27 @@ function checkEmail(input) {
     /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
   if (re.test(input.value.trim())) {
     showSuccess(input);
+    return true;
   } else {
     showError(input, 'Email is not valid');
+    return false;
   }
 }
 
 // Check required field
 function checkRequired(inputArr) {
-  inputArr.forEach(function (input) {
+  const valid = Array(inputArr.length).fill(false);
+  inputArr.forEach(function (input, index) {
     if (input.value.trim() === '') {
       showError(input, `${getFieldName(input)} is required`);
+      return false;
     } else {
+      valid[index] = true;
       showSuccess(input);
+      return true;
     }
   });
+  return valid.every((x) => x);
 }
 
 // Check input length
@@ -47,6 +54,7 @@ function checkLength(input, min, max) {
       input,
       `${getFieldName(input)} must be at least ${min} characters`
     );
+    return false;
   } else if (input.value.length > max) {
     showError(
       input,
@@ -54,6 +62,17 @@ function checkLength(input, min, max) {
     );
   } else {
     showSuccess(input);
+    return true;
+  }
+}
+
+// Check passwords match
+function checkPasswordsMatcdh(input1, input2) {
+  if (input1.value !== input2.value) {
+    showError(input2, 'Passwords do not match');
+    return false;
+  } else {
+    return true;
   }
 }
 
@@ -65,10 +84,18 @@ function getFieldName(input) {
 // Event listeners
 form.addEventListener('submit', function (e) {
   e.preventDefault();
-
-  checkRequired([username, email, password, password2]);
-  checkLength(username, 3, 15);
-  checkLength(password, 6, 25);
-  checkLength(password2, 6, 25);
-  checkEmail(email);
+  const valid = [
+    checkRequired([username, email, password, password2]),
+    checkLength(username, 3, 15),
+    checkLength(password, 6, 25),
+    checkLength(password2, 6, 25),
+    checkEmail(email),
+    checkPasswordsMatcdh(password, password2),
+  ];
+  if (valid.includes(false)) {
+    console.log("the form isn't valid");
+  } else {
+    console.log('SUCCESS');
+    form.submit();
+  }
 });
